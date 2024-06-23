@@ -122,6 +122,8 @@ void SIM7000MQTT::publishMessage(const SIM7000MQTT::Topic& topic, const std::str
 		} else if (i == 1) {
 			if (s == ATParser::Status::kOk) {
 				++i;
+			} else {
+				i = 0;
 			}
 		}
 	}
