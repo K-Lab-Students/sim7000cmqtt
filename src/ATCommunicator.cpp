@@ -64,7 +64,7 @@ ATCommunicator::ATCommunicator(UART_HandleTypeDef *huart) : huart_(huart)
 ATParser::Status ATCommunicator::rawSend(const std::string& str, uint32_t rx_attempts) noexcept
 {
 	HAL_UART_Transmit(huart_, reinterpret_cast<const uint8_t *>(str.c_str()), str.size(), 1000);
-	return waitResponse(rx_attempts);
+	return waitResponse(str, rx_attempts);
 }
 
 ATParser::Status ATCommunicator::waitResponse(uint32_t rx_attempts) noexcept
@@ -90,6 +90,40 @@ ATParser::Status ATCommunicator::waitResponse(uint32_t rx_attempts) noexcept
 	memset(rx_raw_buffer_, 0, sizeof(rx_raw_buffer_));
 
 	HAL_UART_Transmit(&huart3, resp, idx, 100);
+	memset(resp, 0, sizeof(resp));
+
+	return res;
+}
+
+ATParser::Status ATCommunicator::waitResponse(const std::string& str, uint32_t rx_attempts) noexcept
+{
+	uint16_t size, idx{};
+	static uint8_t resp[256];
+	ATParser::Status res;
+	uint8_t attempts{};
+
+	do {
+		HAL_UARTEx_ReceiveToIdle(huart_, reinterpret_cast<uint8_t *>(rx_raw_buffer_),
+								 sizeof(rx_raw_buffer_), &size, 10000);
+		memcpy(&resp[idx], rx_raw_buffer_, size);
+		idx += size;
+		if (attempts > rx_attempts) {
+			res = ATParser::Status::kTimeoutError;
+		} else {
+			res = ATParser::parse(resp, idx);
+		}
+		attempts++;
+	}
+	while (res == ATParser::Status::kNotFullInput);
+	memset(rx_raw_buffer_, 0, sizeof(rx_raw_buffer_));
+
+	HAL_UART_Transmit(&huart3, resp, idx, 100);
+	for (uint16_t i = 0; i < str.size(); ++i) {
+		if (resp[i] != str[i]) {
+			res = ATParser::Status::kNotValid;
+			break;
+		}
+	}
 	memset(resp, 0, sizeof(resp));
 
 	return res;

@@ -40,6 +40,7 @@ public:
 
 	ATParser::Status rawSend(const std::string& str, uint32_t rx_attempts) noexcept;
 	ATParser::Status waitResponse(uint32_t rx_attempts) noexcept;
+	ATParser::Status waitResponse(const std::string& str, uint32_t rx_attempts) noexcept;
 
 private:
 	UART_HandleTypeDef *huart_{};
