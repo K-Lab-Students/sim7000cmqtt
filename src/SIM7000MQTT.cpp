@@ -32,6 +32,12 @@ SIM7000MQTT::SIM7000MQTT(UART_HandleTypeDef *huart, URL url, Port port,
 			AT_SMDISC AT_ENDL,
 			AT_CNACT_OFF AT_ENDL
 	};
+
+	gnss_cmds_ = std::vector<std::string>{
+			AT_CGNSSPWR_ON AT_ENDL,
+			AT_CGNSSINF AT_ENDL,
+			AT_CGNSSPWR_OFF AT_ENDL
+	};
 }
 
 void SIM7000MQTT::waitInit() noexcept
@@ -104,8 +110,22 @@ void SIM7000MQTT::disableMQTT() noexcept
 	}
 }
 
-void SIM7000MQTT::setupGNSS(const SIM7000MQTT::Topic& topic, uint32_t timeout) noexcept
+void SIM7000MQTT::setupGNSS() noexcept
 {
+	for (uint8_t i = 0; i < gnss_cmds_.size();) {
+		HAL_Delay(300);
+		if (i == 0 || i == 2) {
+			auto s = comm_.rawSend(gnss_cmds_[i], 1);
+			if (s == ATParser::Status::kOk)
+				++i;
+		} else {
+			std::string res;
+			auto s = comm_.rawTxRx(gnss_cmds_[i], res, 1);
+			if (s == ATParser::Status::kOk)
+				++i;
+		}
+
+	}
 }
 
 void SIM7000MQTT::publishMessage(const SIM7000MQTT::Topic& topic, const std::string& message) noexcept

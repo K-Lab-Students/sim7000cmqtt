@@ -31,7 +31,7 @@ public:
 	};
 
 public:
-	static Status parse(const uint8_t* str, uint8_t size) noexcept;
+	static Status parse(const uint8_t *str, uint8_t size) noexcept;
 };
 
 class ATCommunicator {
@@ -39,8 +39,10 @@ public:
 	ATCommunicator(UART_HandleTypeDef *huart);
 
 	ATParser::Status rawSend(const std::string& str, uint32_t rx_attempts) noexcept;
+	ATParser::Status rawTxRx(const std::string& str, std::string& res, uint32_t rx_attempts) noexcept;
 	ATParser::Status waitResponse(uint32_t rx_attempts) noexcept;
 	ATParser::Status waitResponse(const std::string& str, uint32_t rx_attempts) noexcept;
+	ATParser::Status waitResponse(const std::string& str, std::string& result, uint32_t rx_attempts) noexcept;
 
 private:
 	UART_HandleTypeDef *huart_{};

@@ -40,7 +40,7 @@ public:
 	void setupMQTT() noexcept;
 	void enableMQTT() noexcept;
 	void disableMQTT() noexcept;
-	void setupGNSS(const Topic& topic, uint32_t timeout) noexcept;
+	void setupGNSS() noexcept;
 	void publishMessage(const Topic& topic, const std::string& message) noexcept;
 
 private:
@@ -55,6 +55,7 @@ private:
 	std::vector<std::string> setup_mqtt_cmds_;
 	std::vector<std::string> enable_mqtt_cmds_;
 	std::vector<std::string> disable_mqtt_cmds_;
+	std::vector<std::string> gnss_cmds_;
 	std::array<std::string, 2> publish_message_cmds_;
 
 	std::string current_response_;
