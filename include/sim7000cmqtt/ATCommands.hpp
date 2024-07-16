@@ -9,9 +9,9 @@
 #define AT_CNACT_ON  AT "+CNACT=1,\"cmnet\""
 #define AT_CNACT_OFF AT "+CNACT=0"
 
-#define AT_CGNSSPWR_ON  AT "+CGNSSPWR=1"
-#define AT_CGNSSPWR_OFF AT "+CGNSSPWR=0"
-#define AT_CGNSSINF     AT "+CGNSSINF"
+#define AT_CGNSPWR_ON  AT "+CGNSPWR=1"
+#define AT_CGNSPWR_OFF AT "+CGNSPWR=0"
+#define AT_CGNSINF     AT "+CGNSINF"
 
 #define AT_SMCONF             AT "+SMCONF"
 #define AT_SMCONF_URL         AT_SMCONF "=URL,"
