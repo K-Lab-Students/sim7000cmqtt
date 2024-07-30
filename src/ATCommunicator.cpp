@@ -2,7 +2,7 @@
 // Created by vadim on 6/1/24.
 //
 
-#include "ATCommunicator.hpp"
+#include "sim7000cmqtt/ATCommunicator.hpp"
 
 #include <cstring>
 
@@ -89,7 +89,7 @@ ATParser::Status ATCommunicator::waitResponse(uint32_t rx_attempts) noexcept
 	while (res == ATParser::Status::kNotFullInput);
 	memset(rx_raw_buffer_, 0, sizeof(rx_raw_buffer_));
 
-	HAL_UART_Transmit(&huart3, resp, idx, 100);
+	// HAL_UART_Transmit(&huart3, resp, idx, 100);
 	memset(resp, 0, sizeof(resp));
 
 	return res;
@@ -117,7 +117,7 @@ ATParser::Status ATCommunicator::waitResponse(const std::string& str, uint32_t r
 	while (res == ATParser::Status::kNotFullInput);
 	memset(rx_raw_buffer_, 0, sizeof(rx_raw_buffer_));
 
-	HAL_UART_Transmit(&huart3, resp, idx, 100);
+	// HAL_UART_Transmit(&huart3, resp, idx, 100);
 	for (uint16_t i = 0; i < str.size(); ++i) {
 		if (resp[i] != str[i]) {
 			res = ATParser::Status::kNotValid;

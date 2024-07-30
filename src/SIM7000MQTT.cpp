@@ -2,8 +2,8 @@
 // Created by vadim on 5/26/24.
 //
 
-#include "SIM7000MQTT.hpp"
-#include "ATCommands.hpp"
+#include "sim7000cmqtt/SIM7000MQTT.hpp"
+#include "sim7000cmqtt/ATCommands.hpp"
 
 SIM7000MQTT::SIM7000MQTT(UART_HandleTypeDef *huart, URL url, Port port,
 						 CliendID client_id, Username username, Password password) :
