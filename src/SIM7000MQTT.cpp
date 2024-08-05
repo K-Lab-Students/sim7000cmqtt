@@ -62,7 +62,7 @@ void SIM7000MQTT::waitInit() noexcept
 void SIM7000MQTT::setupMQTT() noexcept
 {
 	for (uint8_t i = 0; i < setup_mqtt_cmds_.size();) {
-		HAL_Delay(300);
+		HAL_Delay(100);
 		auto s = comm_.rawSend(setup_mqtt_cmds_[i], 1);
 		if (s == ATParser::Status::kOk)
 			++i;
@@ -73,7 +73,7 @@ void SIM7000MQTT::enableMQTT() noexcept
 {
 
 	for (uint8_t i = 0; i < enable_mqtt_cmds_.size();) {
-		HAL_Delay(300);
+		HAL_Delay(1000);
 		auto s = comm_.rawSend(enable_mqtt_cmds_[i], 5);
 		if (s == ATParser::Status::kOk) {
 			if (i == 0) {
@@ -83,6 +83,7 @@ void SIM7000MQTT::enableMQTT() noexcept
 			} else if (i == 1) {
 				++i;
 			}
+			__NOP();
 		}
 	}
 }
@@ -90,7 +91,7 @@ void SIM7000MQTT::enableMQTT() noexcept
 void SIM7000MQTT::disableMQTT() noexcept
 {
 	for (uint8_t i = 0; i < disable_mqtt_cmds_.size();) {
-		HAL_Delay(300);
+		HAL_Delay(100);
 		auto s = comm_.rawSend(disable_mqtt_cmds_[i], 5);
 		if (s == ATParser::Status::kOk) {
 			if (i == 0) {
@@ -113,7 +114,7 @@ void SIM7000MQTT::publishMessage(const SIM7000MQTT::Topic& topic, const std::str
 	publish_message_cmds_[0] = AT_SMPUB"\"" + topic + "\"," + std::to_string(message.size()) + ",1,1" + AT_ENDL;
 	publish_message_cmds_[1] = message + AT_ENDL;
 	for (uint8_t i = 0; i < publish_message_cmds_.size();) {
-		HAL_Delay(300);
+		HAL_Delay(100);
 		auto s = comm_.rawSend(publish_message_cmds_[i], 5);
 		if (i == 0) {
 			if (s == ATParser::Status::kWaitInput) {
