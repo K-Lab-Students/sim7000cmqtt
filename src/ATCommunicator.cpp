@@ -75,23 +75,13 @@ ATParser::Status ATCommunicator::waitResponse(uint32_t rx_attempts) noexcept
     uint8_t attempts {};
 
     do {
-        // HAL_UARTEx_ReceiveToIdle(huart_, rx_raw_buffer_, sizeof(rx_raw_buffer_), &size, 10000);
-        // memcpy(&resp[idx], rx_raw_buffer_, size);
-        // idx += size;
-        // if (attempts > rx_attempts) {
-        // 	res = ATParser::Status::kTimeoutError;
-        // } else {
-        // 	res = ATParser::parse(resp, idx);
-        // }
-        // attempts++;
-
-        HAL_UARTEx_ReceiveToIdle(huart_, resp + idx, sizeof(resp) - idx, &size, 10000);
-        // memcpy(&resp[idx], rx_raw_buffer_, size);
+        HAL_UARTEx_ReceiveToIdle(huart_, rx_raw_buffer_, sizeof(rx_raw_buffer_), &size, 10000);
+        memcpy(&resp[idx], rx_raw_buffer_, size);
         idx += size;
         if (attempts > rx_attempts) {
-            res = ATParser::Status::kTimeoutError;
+        	res = ATParser::Status::kTimeoutError;
         } else {
-            res = ATParser::parse(resp, idx);
+        	res = ATParser::parse(resp, idx);
         }
         attempts++;
     } while (res == ATParser::Status::kNotFullInput);
@@ -111,18 +101,8 @@ ATParser::Status ATCommunicator::waitResponse(const std::string &str, uint32_t r
     uint8_t attempts {};
 
     do {
-        // HAL_UARTEx_ReceiveToIdle(huart_, rx_raw_buffer_, sizeof(rx_raw_buffer_), &size, 10000);
-        // memcpy(&resp[idx], rx_raw_buffer_, size);
-        // idx += size;
-        // if (attempts > rx_attempts) {
-        //     res = ATParser::Status::kTimeoutError;
-        // } else {
-        //     res = ATParser::parse(resp, idx);
-        // }
-        // attempts++;
-
-        HAL_UARTEx_ReceiveToIdle(huart_, resp + idx, sizeof(resp) - idx, &size, 10000);
-        // memcpy(&resp[idx], rx_raw_buffer_, size);
+        HAL_UARTEx_ReceiveToIdle(huart_, rx_raw_buffer_, sizeof(rx_raw_buffer_), &size, 10000);
+        memcpy(&resp[idx], rx_raw_buffer_, size);
         idx += size;
         if (attempts > rx_attempts) {
             res = ATParser::Status::kTimeoutError;
