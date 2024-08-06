@@ -17,52 +17,58 @@
 
 class SIM7000MQTT {
 public:
-	using URL = std::string;
-	using Port = std::string;
-	using CliendID = std::string;
-	using Username = std::string;
-	using Password = std::string;
+    using URL = std::string;
+    using Port = uint16_t;
+    using CliendID = std::string;
+    using Username = std::string;
+    using Password = std::string;
 
-	using Topic = std::string;
+    using Topic = std::string;
 
-	using Message = std::pair<Topic, std::string>;
+    using Message = std::pair<Topic, std::string>;
 
-	enum class Status {
-		kError,
-		kOk
-	};
+    enum class Status : bool {
+        kError,
+        kOk
+    };
 
 public:
-	SIM7000MQTT(UART_HandleTypeDef *huart, URL url, Port port,
-				CliendID client_id, Username username, Password password);
+    SIM7000MQTT(UART_HandleTypeDef* huart, URL url, Port port, CliendID client_id, Username username,
+                Password password);
 
-	void waitInit() noexcept;
-	void setupMQTT() noexcept;
-	void enableMQTT() noexcept;
-	void disableMQTT() noexcept;
-	void setupGNSS(const Topic& topic, uint32_t timeout) noexcept;
-	void publishMessage(const Topic& topic, const std::string& message) noexcept;
+    void waitInit() noexcept;
+
+    SIM7000MQTT::Status wirelessConnectionOn() noexcept;
+    SIM7000MQTT::Status wirelessConnectionOff() noexcept;
+
+    SIM7000MQTT::Status setupMQTT() noexcept;
+    SIM7000MQTT::Status enableMQTT() noexcept;
+    SIM7000MQTT::Status disableMQTT() noexcept;
+    SIM7000MQTT::Status publishMessage(const Topic& topic, const std::string& message) noexcept;
+
+    void setupGNSS(const Topic& topic, uint32_t timeout) noexcept;
+
+    SIM7000MQTT::Status process(const char* message) noexcept;
 
 private:
-	ATCommunicator comm_;
+    SIM7000MQTT::Status smconf_(const char* parameter, const char* value) noexcept;
+    SIM7000MQTT::Status smconf_(const char* parameter, const char* value, uint16_t port) noexcept;
+    SIM7000MQTT::Status cnact_(bool status) noexcept;
+    SIM7000MQTT::Status smconn_(bool status) noexcept;
+    SIM7000MQTT::Status smpub_(const char* topic, const char* msg) noexcept;
 
-	URL url_;
-	Port port_;
-	CliendID client_id_;
-	Username username_;
-	Password password_;
+    SIM7000MQTT::Status checkResp_(const char* resp, const char* except) noexcept;
 
-	std::vector<std::string> setup_mqtt_cmds_;
-	std::vector<std::string> enable_mqtt_cmds_;
-	std::vector<std::string> disable_mqtt_cmds_;
-	std::array<std::string, 2> publish_message_cmds_;
+private:
+    ATCommunicator comm_;
 
-	std::string current_response_;
+    URL url_;
+    Port port_;
+    CliendID client_id_;
+    Username username_;
+    Password password_;
 
-	bool is_mqtt_enabled_{false};
-	bool is_received_{false};
-
-	ATParser::Status parser_status_{ATParser::Status::kOk};
+    std::array<std::string, 2> publish_message_cmds_;
 };
 
-#endif //TESTSIM7000C_SIM7000MQTT_HPP
+#endif    // TESTSIM7000C_SIM7000MQTT_HPP

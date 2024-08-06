@@ -2,125 +2,38 @@
 // Created by vadim on 6/1/24.
 //
 
-#include "sim7000cmqtt/ATCommunicator.hpp"
+#include "ATCommunicator.hpp"
 
 #include <cstring>
-
-ATParser::Status ATParser::parse(const uint8_t *str, uint8_t size) noexcept
-{
-    uint8_t idx {};
-
-    while (str[idx] != '\r' && idx < size)
-        idx++;
-    if (str[idx + 1] == '\r')
-        idx++;
-
-    idx += 2;
-
-    if (idx >= size) {
-        return Status::kNotFullInput;
-    }
-
-    if (str[idx] == '>') {
-        return Status::kWaitInput;
-    }
-    if (str[idx] == '+') {
-        if (str[idx + 1] == 'C') {
-            if (str[idx + 2] == 'P') {
-                return Status::kCPIN;
-            } else if (str[idx + 2] == 'F') {
-                return Status::kCFUN;
-            } else {
-                return Status::kUnknown;
-            }
-        }
-        if (str[idx + 1] == 'A') {
-            if (str[idx + 10] == 'A') {
-                return Status::kAPPPDPActive;
-            } else if (str[idx + 10] == 'D') {
-                return Status::kAPPPDPDeactive;
-            } else {
-                return Status::kUnknown;
-            }
-        }
-        return Status::kUnknown;
-    } else if (str[idx] == 'S' && str[idx + 1] == 'M' && str[idx + 2] == 'S') {
-        return Status::kSMSRdy;
-    } else if (str[idx] == 'R' && str[idx + 1] == 'D' && str[idx + 2] == 'Y') {
-        return Status::kRDY;
-    } else if (str[idx] == 'O' && str[idx + 1] == 'K') {
-        return Status::kOk;
-    } else if (str[idx] == 'E' && str[idx + 1] == 'R' && str[idx + 2] == 'R') {
-        return Status::kError;
-    }
-
-    return Status::kNotFullInput;
-}
 
 ATCommunicator::ATCommunicator(UART_HandleTypeDef *huart) : huart_(huart)
 {
 }
 
-ATParser::Status ATCommunicator::rawSend(const std::string &str, uint32_t rx_attempts) noexcept
+ATCommunicator::Status ATCommunicator::rawSend(const char *str, char *resp, uint32_t timeout) noexcept
 {
-    HAL_UART_Transmit(huart_, reinterpret_cast<const uint8_t *>(str.c_str()), str.size(), 1000);
-    return waitResponse(str, rx_attempts);
-}
-
-ATParser::Status ATCommunicator::waitResponse(uint32_t rx_attempts) noexcept
-{
-    uint16_t size, idx {};
-    static uint8_t resp[256];
-    ATParser::Status res;
-    uint8_t attempts {};
-
-    do {
-        HAL_UARTEx_ReceiveToIdle(huart_, rx_raw_buffer_, sizeof(rx_raw_buffer_), &size, 10000);
-        memcpy(&resp[idx], rx_raw_buffer_, size);
-        idx += size;
-        if (attempts > rx_attempts) {
-        	res = ATParser::Status::kTimeoutError;
-        } else {
-        	res = ATParser::parse(resp, idx);
-        }
-        attempts++;
-    } while (res == ATParser::Status::kNotFullInput);
-    memset(rx_raw_buffer_, 0, sizeof(rx_raw_buffer_));
-
-    // HAL_UART_Transmit(&huart3, resp, idx, 100);
-    memset(resp, 0, sizeof(resp));
-
-    return res;
-}
-
-ATParser::Status ATCommunicator::waitResponse(const std::string &str, uint32_t rx_attempts) noexcept
-{
-    uint16_t size, idx {};
-    static uint8_t resp[256];
-    ATParser::Status res;
-    uint8_t attempts {};
-
-    do {
-        HAL_UARTEx_ReceiveToIdle(huart_, rx_raw_buffer_, sizeof(rx_raw_buffer_), &size, 10000);
-        memcpy(&resp[idx], rx_raw_buffer_, size);
-        idx += size;
-        if (attempts > rx_attempts) {
-            res = ATParser::Status::kTimeoutError;
-        } else {
-            res = ATParser::parse(resp, idx);
-        }
-        attempts++;
-    } while (res == ATParser::Status::kNotFullInput);
-    memset(rx_raw_buffer_, 0, sizeof(rx_raw_buffer_));
-
-    // HAL_UART_Transmit(&huart3, resp, idx, 100);
-    for (uint16_t i = 0; i < str.size(); ++i) {
-        if (resp[i] != str[i]) {
-            res = ATParser::Status::kNotValid;
-            break;
-        }
+    auto hal_status = HAL_UART_Transmit(huart_, reinterpret_cast<const uint8_t *>(str), strlen(str), 1000);
+    if (hal_status == HAL_OK) {
+        return waitResponse(resp, timeout);
     }
-    memset(resp, 0, sizeof(resp));
+    return hal_status == HAL_TIMEOUT ? Status::kTimeout : Status::kError;
+}
 
-    return res;
+ATCommunicator::Status ATCommunicator::waitResponse(char *resp, uint32_t timeout) noexcept
+{
+    uint16_t size, idx {};
+
+    auto hal_status = HAL_UARTEx_ReceiveToIdle(huart_, rx_raw_buffer_, sizeof(rx_raw_buffer_), &size, timeout);
+    memcpy(resp, rx_raw_buffer_, size);
+
+    memset(rx_raw_buffer_, 0, sizeof(rx_raw_buffer_));
+
+#ifdef SIM7000CMQTT_DEBUG_ENABLED
+    HAL_UART_Transmit(&huart3, resp, idx, 1000);
+#endif
+
+    if (hal_status == HAL_OK) {
+        return Status::kOk;
+    }
+    return hal_status == HAL_TIMEOUT ? Status::kTimeout : Status::kError;
 }
