@@ -24,12 +24,17 @@ ATCommunicator::Status ATCommunicator::waitResponse(char *resp, uint32_t timeout
     uint16_t size, idx {};
 
     auto hal_status = HAL_UARTEx_ReceiveToIdle(huart_, rx_raw_buffer_, sizeof(rx_raw_buffer_), &size, timeout);
-    memcpy(resp, rx_raw_buffer_, size);
+
+    if (resp != nullptr) {
+        memcpy(resp, rx_raw_buffer_, size);
+    }
 
     memset(rx_raw_buffer_, 0, sizeof(rx_raw_buffer_));
 
 #ifdef SIM7000CMQTT_DEBUG_ENABLED
-    HAL_UART_Transmit(&huart3, resp, idx, 1000);
+    if (resp != nullptr) {
+        HAL_UART_Transmit(&huart3, resp, idx, 1000);
+    }
 #endif
 
     if (hal_status == HAL_OK) {
