@@ -12,40 +12,24 @@
 
 #include "usart.h"
 
-class ATParser {
-public:
-	enum class Status {
-		kCPIN,
-		kAPPPDPActive,
-		kAPPPDPDeactive,
-		kRDY,
-		kCFUN,
-		kSMSRdy,
-		kOk,
-		kError,
-		kWaitInput,
-		kNotValid,
-		kNotFullInput,
-		kTimeoutError,
-		kUnknown
-	};
-
-public:
-	static Status parse(const uint8_t* str, uint8_t size) noexcept;
-};
-
 class ATCommunicator {
 public:
-	ATCommunicator(UART_HandleTypeDef *huart);
+    enum class Status {
+        kOk,
+        kError,
+        kTimeout
+    };
 
-	ATParser::Status rawSend(const std::string& str, uint32_t rx_attempts) noexcept;
-	ATParser::Status waitResponse(uint32_t rx_attempts) noexcept;
-	ATParser::Status waitResponse(const std::string& str, uint32_t rx_attempts) noexcept;
+public:
+    ATCommunicator(UART_HandleTypeDef* huart);
+
+    ATCommunicator::Status rawSend(const char* str, char* resp, uint32_t timeout) noexcept;
+    ATCommunicator::Status waitResponse(char* resp, uint32_t timeout) noexcept;
 
 private:
-	UART_HandleTypeDef *huart_{};
+    UART_HandleTypeDef* huart_ {};
 
-	uint8_t rx_raw_buffer_[512]{};
+    uint8_t rx_raw_buffer_[512] {};
 };
 
-#endif //TESTSIM7000C_ATCOMMUNICATOR_HPP
+#endif    // TESTSIM7000C_ATCOMMUNICATOR_HPP
